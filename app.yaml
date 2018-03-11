@@ -1,0 +1,24 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+
+- url: /_ah/api/.*
+  script: readppl.api
+
+- url: /.*
+  script: main.app
+
+libraries:
+- name: pycrypto
+  version: 2.6
+- name: ssl
+  version: 2.7.11
+
+
+env_variables:
+  # The following values are to be replaced by information from the output of
+  # 'gcloud endpoints services deploy swagger.json' command.
+  ENDPOINTS_SERVICE_NAME: read-ppl.appspot.com
+  ENDPOINTS_SERVICE_VERSION: 2018-03-10r0
