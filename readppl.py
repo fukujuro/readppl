@@ -139,11 +139,15 @@ class ReadpplApi(remote.Service):
         http_method='GET',
         name='getTopForum')
     def getTopForum(self, request):
-        q = Topic.query()
-        q = q.filter(Topic.forums==request.title)
-        q = q.order(-Topic.vote)
-        q = q.fetch(10)
-        topics = [self._copyTopicToForm(t) for t in q]
+        key = 'top:forum:' + request.title
+        topics = memcache.get(key)
+        if not topics:
+            q = Topic.query()
+            q = q.filter(Topic.forums==request.title)
+            q = q.order(-Topic.vote)
+            q = q.fetch(10)
+            topics = [self._copyTopicToForm(t) for t in q]
+            memcache.set(key)
         n = len(topics)
         return TopicForms(topics=topics, length=n)
 
