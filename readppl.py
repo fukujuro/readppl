@@ -19,6 +19,8 @@ from utils import saveTopics
 from google.appengine.api import taskqueue
 from google.appengine.api import memcache
 
+from nltk import FreqDist
+
 
 class TaskForm(messages.Message):
     title = messages.StringField(1)
@@ -45,6 +47,14 @@ class ReadpplApi(remote.Service):
                 setattr(tf, field.name, getattr(top, field.name))
         tf.check_initialized()
         return tf
+
+    def _copyTagToForm(self, tag):
+        ftf = FreqTagForm()
+        for field in ftf.all_fields():
+            if hasattr(tag, field.name):
+                setattr(ftf, field.name, getattr(tag, field.name))
+        ftf.check_initialized()
+        return ftf
 
     @ndb.transactional()
     def _initForum(self, title, count, last_id):
@@ -93,7 +103,17 @@ class ReadpplApi(remote.Service):
         n = len(topics)
         return TopicForms(topics=topics, length=n)
 
-        # return ForumForm(forum=t)
+    def _freqTag(self, topics, n=50):
+        tags = []
+        for topic in topics:
+            tags.extend(topic['tags'])
+        fdist = FreqDist(tags)
+        mc_tags = fdist.most_common(n)
+        freq_tags = []
+        for t in mc_tags:
+            if t[1] > 1:
+                freq_tags.append(t)
+        return freq_tags
 
     @endpoints.method(
         message_types.VoidMessage,
@@ -110,8 +130,9 @@ class ReadpplApi(remote.Service):
             q = q.fetch(10)
             topics = [self._copyTopicToForm(t) for t in q]
             memcache.set('top:all', topics)
+        freq_tags = [self.copyTagToForm(t) for t in _freqTag(topics)]
         n = len(topics)
-        return TopicForms(topics=topics, length=n)
+        return TopicForms(topics=topics, length=n, tags=freq_tags)
 
     @endpoints.method(
         TaskForm,

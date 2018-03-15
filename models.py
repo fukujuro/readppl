@@ -64,6 +64,11 @@ class TopicForm(messages.Message):
     forums      = messages.StringField(9, repeated=True)
 
 
+class FreqTagForm(messages.Message):
+    tag         = messages.StringField(1)
+    n           = messages.IntegerField(2, variant=messages.Variant.INT32)
+
 class TopicForms(messages.Message):
     topics      = messages.MessageField(TopicForm, 1, repeated=True)
     length      = messages.IntegerField(2, variant=messages.Variant.INT32)
+    tags        = messages.MessageField(FreqTagForm, 3, repeated=True)

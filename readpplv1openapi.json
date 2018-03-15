@@ -1,0 +1,243 @@
+{
+  "basePath": "/_ah/api",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "ModelsTopicForm": {
+      "properties": {
+        "author": {
+          "type": "string"
+        },
+        "comment": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "disp_topic": {
+          "type": "string"
+        },
+        "forums": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "top_id": {
+          "type": "string"
+        },
+        "topic_type": {
+          "type": "string"
+        },
+        "utime": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "vote": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "ModelsTopicForms": {
+      "properties": {
+        "length": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "topics": {
+          "items": {
+            "$ref": "#/definitions/ModelsTopicForm"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "ReadpplForumForm": {
+      "properties": {
+        "count": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "forum": {
+          "type": "string"
+        },
+        "last_id": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ReadpplTaskForm": {
+      "properties": {
+        "last_id": {
+          "default": "0",
+          "type": "string"
+        },
+        "loops": {
+          "default": 1,
+          "format": "int32",
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "host": "read-ppl.appspot.com",
+  "info": {
+    "title": "readppl",
+    "version": "v1"
+  },
+  "paths": {
+    "/readppl/v1/readppl/get_top": {
+      "get": {
+        "operationId": "ReadpplApi_getTop",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/ModelsTopicForms"
+            }
+          }
+        }
+      }
+    },
+    "/readppl/v1/readppl/get_top_forum": {
+      "get": {
+        "operationId": "ReadpplApi_getTopForum",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "default": 1,
+            "format": "int32",
+            "in": "query",
+            "name": "loops",
+            "type": "integer"
+          },
+          {
+            "default": "0",
+            "in": "query",
+            "name": "last_id",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/ModelsTopicForms"
+            }
+          }
+        }
+      }
+    },
+    "/readppl/v1/readppl/get_top_tag": {
+      "get": {
+        "operationId": "ReadpplApi_getTopTag",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "default": 1,
+            "format": "int32",
+            "in": "query",
+            "name": "loops",
+            "type": "integer"
+          },
+          {
+            "default": "0",
+            "in": "query",
+            "name": "last_id",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/ModelsTopicForms"
+            }
+          }
+        }
+      }
+    },
+    "/readppl/v1/readppl/init_forum": {
+      "post": {
+        "operationId": "ReadpplApi_initForum",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ReadpplTaskForm"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/ModelsTopicForms"
+            }
+          }
+        }
+      }
+    },
+    "/readppl/v1/readppl/update_forum": {
+      "post": {
+        "operationId": "ReadpplApi_updateForum",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ReadpplForumForm"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response",
+            "schema": {
+              "$ref": "#/definitions/ReadpplForumForm"
+            }
+          }
+        }
+      }
+    }
+  },
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "https"
+  ],
+  "securityDefinitions": {
+    "google_id_token": {
+      "authorizationUrl": "",
+      "flow": "implicit",
+      "type": "oauth2",
+      "x-google-issuer": "https://accounts.google.com",
+      "x-google-jwks_uri": "https://www.googleapis.com/oauth2/v3/certs"
+    }
+  },
+  "swagger": "2.0"
+}
