@@ -1,6 +1,7 @@
 runtime: python27
 api_version: 1
 threadsafe: true
+# instance_class: F2
 
 builtins:
   - appstats: on
@@ -14,6 +15,11 @@ handlers:
 - url: /collect_topics/forum
   script: main.app
   login: admin
+
+- url: /
+  static_files: templates/index.html
+  upload: templates/index\.html
+  secure: always
 
 - url: /.*
   script: main.app

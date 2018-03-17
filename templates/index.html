@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+    <title>Read+ เว็บค้นกระทู้ดีๆ ในพันทิป</title>
+    <style>
+      .navbar-dropdown.is-boxed {
+        border-radius: 0px;
+      }
+      .post {
+        border-bottom: solid 1px #efefed;
+        padding: 5px;
+      }
+      .post header a {
+        color: #222;
+      }
+      .post footer a {
+        color: #a5a4a4;
+      }
+      [v-cloak] {
+        display: none;
+      }
+      .scores {
+        display: inline-block;
+      }
+      .tags {
+        float: right;
+      }
+      .tag {
+        border-radius: 0px !important;
+      }
+      .score {
+        float: left;
+      }
+      .tag-score {
+        margin-left: 5px;
+      }
+      .room {
+        padding-right: 0.25em;
+      }
+      .tabs {
+        margin-bottom: 0px;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .field {
+        margin-bottom: 0px;
+        padding: 5px 0px 0px 5px;
+      }
+      @media screen and (min-width: 1024px) {
+        .column {
+          border: solid 1px #efefed;
+          height: 100%;
+        }
+      }
+      @media screen and (max-width: 735px) {
+        .is-hidden-portrait {
+          display: none !important;
+        }
+      }
+      @media screen and (max-width: 1407px) {
+        .is-hidden-smallscreen {
+          display: none !important;
+        }
+      }
+    </style>
+</head>
+<body>
+<main id="app" v-cloak>
+  <nav id="nav" class="navbar is-link" role="navigation" aria-label="dropdown navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://readpl.us" >Read+</a>
+      <div class="navbar-burger" data-target="navMenu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    <div class="navbar-menu" id="navMenu" >
+      <div class="navbar-start">
+        <a class="navbar-item is-hidden-desktop" v-on:click="showTop()">
+          Topics
+        </a>
+        <a class="navbar-item is-hidden-desktop" v-on:click="hideTop()">
+          Tags
+        </a>
+        <div class="navbar-item has-dropdown" id="nav1">
+          <div class="navbar-link" v-on:click="toggleNav1()">{{ current }}</div>
+          <div class="navbar-dropdown is-boxed">
+            <a class="navbar-item" v-for="room in rooms" v-on:click="getTopForum($event)">{{ room }}</a>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </nav>
+  <section class="container is-size-7-mobile">
+    <nav class="breadcrumb is-hidden-touch">
+    </nav>
+    <div class="field has-addons" :class="isQuery">
+      <div class="tags">
+        <div class="tag is-info" v-for="b in breadcrumbs" v-on:click="removeTag($event)">
+          <span>{{ b }}</span>
+          <span class="tag-score">x</span>
+        </div>
+      </div>
+      <div class="control">
+        <a class="button is-info is-small tag-score" v-on:click="getTopTags()"><i class="fas fa-search"></i></a>
+      </div>
+    </div>
+    <div class="columns is-variable">
+      <div id="top" class="column">
+        <article class="post" v-for="topic in topics" v-cloak>
+            <header>
+              <a :href="'//pantip.com/topic/' + topic.top_id" target="_blank">
+                {{ topic.disp_topic }}
+              </a>
+            </header>
+            <footer>
+              <a :href="'//pantip.com/topic/' + topic.top_id" target="_blank">
+                <div class="scores">
+                  <strong>+{{ topic.vote }}</strong>
+                  <span>·</span>
+                  <span>{{ topic.comment }} comments</span>
+                </div>
+              </a>
+              <div class="tags is-hidden-portrait">
+                <span class="tag is-info" v-for="tag in topic.tags" v-on:click="selectTag($event)">
+                  {{ tag }}
+                </span>
+              </div>
+            </footer>
+        </article>
+      </div>
+      <div id="toptag" class="column is-one-fifth-desktop is-one-quarter-widescreen is-hidden-touch">
+            <div id="tags" class="tags score">
+              <div class="tag is-info" v-for="tag in tags" v-on:click="selectTagScore($event)">
+                <span>{{ tag.tag }}</span>
+                <span class="tag-score">+{{ tag.score }}</span>
+              </div>
+            </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://unpkg.com/vue@2.5.16/dist/vue.min.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+  var app = new Vue({
+    el: "#app",
+    data: {
+      apiUrl: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top?limit=20',
+      apiUrlForum: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top_forum?limit=20&title=',
+      apiUrlTag: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top_tag?limit=20&title=',
+      topics: [],
+      rooms: [
+        'mbk',
+        'siam',
+        'siliconvalley',
+        'silom',
+        'sinthorn',
+        'wahkor'
+      ],
+      all: [
+        'mbk',
+        'siam',
+        'siliconvalley',
+        'silom',
+        'sinthorn',
+        'wahkor'
+      ],
+      current: 'เลือกห้อง',
+      tags: [],
+      breadcrumbs: [],
+      isTop: true,
+      isTag: false,
+      query: '',
+    },
+    computed: {
+      isQuery: function () {
+        if (this.breadcrumbs.length > 0) {
+          return { 'hidden': false }
+        }
+        else {
+          return { 'hidden': true }
+        }
+      }
+    },
+    methods: {
+      showTop: function() {
+        var top = document.getElementById('top');
+        var tag = document.getElementById('toptag');
+        // var tags = document.getElementById('tags');
+        this.close()
+        tag.classList.add('is-hidden-touch');
+        top.classList.remove('hidden');
+        // tags.classList.add('score');
+        this.isTop = true;
+        this.isTag = false;
+      },
+      hideTop: function() {
+        var top = document.getElementById('top');
+        var tag = document.getElementById('toptag');
+        // var tags = document.getElementById('tags');
+        this.close()
+        top.classList.add('hidden');
+        tag.classList.remove('is-hidden-touch');
+        // tags.classList.remove('score');
+        this.isTop = false;
+        this.isTag = true;
+      },
+      toggleNav1: function() {
+        var nav1 = document.getElementById('nav1');
+        nav1.classList.toggle('is-active');
+      },
+      close: function() {
+        var navBurger = document.querySelector('.navbar-burger');
+        var navMenu = document.getElementById('navMenu');
+        var nav1 = document.getElementById('nav1');
+        nav1.classList.remove('is-active');
+        navBurger.classList.remove('is-active');
+        navMenu.classList.remove('is-active');
+      },
+      getTopForum: function(e) {
+        var room = e.target.innerText;
+        if (this.current != room) {
+          var current = this.current;
+          this.rooms.splice(this.rooms.indexOf(room), 1);
+          this.current = room;
+          if (current != 'เลือกห้อง') {
+            var all = this.all;
+            all.splice(all.indexOf(room), 1);
+            this.rooms = all;
+            // this.rooms.push(current);
+          }
+          this.close();
+          if (this.isTag) {
+            this.showTop();
+          }
+          this.topics = [];
+          axios.get(this.apiUrlForum + room)
+          .then((resp) => {
+            var topics = resp.data.topics;
+            topics.forEach(() => this.top_id = 'pantip.com/topic/' + this.top_id)
+            this.topics = topics;
+            this.tags = resp.data.tags;
+          })
+          .catch(err => console.error(err));
+        }
+      },
+      getTop: function() {
+        axios.get(this.apiUrl)
+          .then((resp) => {
+            var topics = resp.data.topics;
+            topics.forEach(() => this.top_id = 'pantip.com/topic/' + this.top_id)
+            this.topics = topics;
+            this.tags = resp.data.tags;
+          })
+          .catch(err => console.error(err));
+      },
+      selectTagScore: function(e) {
+        this.close();
+        var tag = e.target.parentNode.firstChild.innerText;
+        if (this.breadcrumbs.indexOf(tag) == -1 && this.breadcrumbs.length < 5) {
+          this.breadcrumbs.push(tag);
+        }
+      },
+      selectTag: function(e) {
+        this.close();
+        var tag = e.target.innerText;
+        if (this.breadcrumbs.indexOf(tag) == -1 && this.breadcrumbs.length < 5) {
+          this.breadcrumbs.push(tag);
+        }
+      },
+      removeTag: function(e) {
+        // console.log(e);
+        var tag = e.target.parentNode.firstChild.innerText;
+        this.breadcrumbs.splice(this.breadcrumbs.indexOf(tag), 1);
+      },
+      getTopTags: function() {
+        var query = this.breadcrumbs.join('+');
+        if (this.query != query) {
+          this.query = query;
+          query = encodeURIComponent(query);
+          if (this.isTag) {
+            this.showTop();
+          }
+          this.topics = [];
+          axios.get(this.apiUrlTag + query)
+            .then((resp) => {
+              // console.log(resp.data.topics);
+              var topics = resp.data.topics;
+              topics.forEach(() => this.top_id = 'pantip.com/topic/' + this.top_id)
+              this.topics = topics;
+              this.tags = resp.data.tags;
+            })
+            .catch(err => console.error(err));
+        }
+      },
+    },
+    created: function() {
+      this.getTop();
+    }
+  });
+
+document.addEventListener('DOMContentLoaded', function () {
+  var $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+  if ($navbarBurgers.length > 0) {
+    $navbarBurgers.forEach(function ($el) {
+      $el.addEventListener('click', function () {
+        var target = $el.dataset.target;
+        var $target = document.getElementById(target);
+        $el.classList.toggle('is-active');
+        $target.classList.toggle('is-active');
+      });
+    });
+  }
+});
+</script>
+</body>
+</html>
