@@ -17,7 +17,7 @@ class CollectTopicsForumHandler(webapp2.RequestHandler):
     def post(self):
         forum = self.request.get('title')
         loops = int(self.request.get('loops'))
-        limit = 100
+        limit = 10
         if loops < limit:
             limit = loops
         forum_key = ndb.Key(Forum, forum)
