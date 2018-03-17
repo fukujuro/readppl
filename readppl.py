@@ -9,7 +9,9 @@ from models import Forum
 from models import ForumInitTask
 from models import Topic
 from models import TopicForm
+from models import FreqTagForm
 from models import TopicForms
+from models import Tag
 
 from utils import getTopicsForum
 from utils import addForum
@@ -19,7 +21,7 @@ from utils import saveTopics
 from google.appengine.api import taskqueue
 from google.appengine.api import memcache
 
-from nltk import FreqDist
+from collections import Counter
 
 
 class TaskForm(messages.Message):
@@ -35,6 +37,13 @@ class ForumForm(messages.Message):
     count = messages.IntegerField(2,
                                   variant=messages.Variant.INT32)
     last_id = messages.StringField(3)
+
+
+class GetTopForm(messages.Message):
+    title = messages.StringField(1)
+    limit = messages.IntegerField(2,
+                                   variant=messages.Variant.INT32,
+                                   default=10)
 
 
 @endpoints.api(name='readppl', version='v1')
@@ -56,6 +65,24 @@ class ReadpplApi(remote.Service):
         ftf.check_initialized()
         return ftf
 
+    def _freqTag(self, tags, n=50):
+        mc_tags = Counter(tags).most_common(n)
+        freq_tags = []
+        for t in mc_tags:
+            if t[1] > 1:
+                freq_tags.append(t)
+        return freq_tags
+
+    def _sumTag(self, topics):
+        sum_tags = {}
+        for topic in topics:
+            for tag in topic.tags:
+                if tag in sum_tags.keys():
+                    sum_tags[tag] += topic.vote
+                else:
+                    sum_tags[tag] = topic.vote
+        return sorted(sum_tags.items(), key=lambda (k,v): v, reverse=True)
+        
     @ndb.transactional()
     def _initForum(self, title, count, last_id):
         forum_key = ndb.Key(Forum, title)
@@ -103,20 +130,8 @@ class ReadpplApi(remote.Service):
         n = len(topics)
         return TopicForms(topics=topics, length=n)
 
-    def _freqTag(self, topics, n=50):
-        tags = []
-        for topic in topics:
-            tags.extend(topic['tags'])
-        fdist = FreqDist(tags)
-        mc_tags = fdist.most_common(n)
-        freq_tags = []
-        for t in mc_tags:
-            if t[1] > 1:
-                freq_tags.append(t)
-        return freq_tags
-
     @endpoints.method(
-        message_types.VoidMessage,
+        GetTopForm,
         TopicForms,
         path='readppl/get_top',
         http_method='GET',
@@ -127,38 +142,70 @@ class ReadpplApi(remote.Service):
             q = Topic.query()
             q = q.filter(Topic.vote > 0)
             q = q.order(-Topic.vote)
-            q = q.fetch(10)
+            if request.limit > 50:
+                limit = 50
+            else:
+                limit = request.limit
+            q = q.fetch(limit)
             topics = [self._copyTopicToForm(t) for t in q]
             memcache.set('top:all', topics)
-        freq_tags = [self.copyTagToForm(t) for t in _freqTag(topics)]
+        sum_tags = memcache.get('tag:top:all')
+        if not sum_tags:
+            sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
+            memcache.set('tag:top:all', sum_tags)
+        # freq_tags = memcache.get('tag:top:all')
+        # if not freq_tags:
+        #     tags = []
+        #     for topic in topics:
+        #         tags.extend(topic.tags)
+        #     freq_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._freqTag(tags)]
+        #     memcache.set('tag:top:all', freq_tags)
         n = len(topics)
-        return TopicForms(topics=topics, length=n, tags=freq_tags)
+        return TopicForms(topics=topics, length=n, tags=sum_tags)
 
     @endpoints.method(
-        TaskForm,
+        GetTopForm,
         TopicForms,
         path='readppl/get_top_tag',
         http_method='GET',
         name='getTopTag')
     def getTopTag(self, request):
-        key = 'top:tag:' + request.title
-        topics = memcache.get(key)
+        query = request.title
+        tags = query.split('+')
+        topics = None
+        key = None
+        if len(tags) == 1:
+            key = 'top:tag:' + tags[0]
+            topics = memcache.get(key)
         if not topics:
             q = Topic.query()
-            q = q.filter(Topic.tags==request.title)
+            for tag in tags:
+                q = q.filter(Topic.tags==tag)
             q = q.order(-Topic.vote)
-            q = q.fetch(10)
+            if request.limit > 50:
+                limit = 50
+            else:
+                limit = request.limit
+            q = q.fetch(limit)
             topics = [self._copyTopicToForm(t) for t in q]
-            memcache.set(key)
+            if len(tags) == 1 and key:
+                memcache.set(key, topics)
+        sum_tags = None
+        if len(tags) == 1 and key:
+            sum_tags = memcache.get('tag' + key)
+        if not sum_tags:
+            sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
+            if len(tags) == 1 and key:
+                memcache.set('tag' + key, sum_tags)
         n = len(topics)
-        return TopicForms(topics=topics, length=n)
+        return TopicForms(topics=topics, length=n, tags=sum_tags)
 
     def _getQuery(self, request, filter):
         q = Topic.query()
         return q
 
     @endpoints.method(
-        TaskForm,
+        GetTopForm,
         TopicForms,
         path='readppl/get_top_forum',
         http_method='GET',
@@ -170,11 +217,19 @@ class ReadpplApi(remote.Service):
             q = Topic.query()
             q = q.filter(Topic.forums==request.title)
             q = q.order(-Topic.vote)
-            q = q.fetch(10)
+            if request.limit > 50:
+                limit = 50
+            else:
+                limit = request.limit
+            q = q.fetch(limit)
             topics = [self._copyTopicToForm(t) for t in q]
-            memcache.set(key)
+            memcache.set(key, topics)
+        sum_tags = memcache.get('tag' + key)
+        if not sum_tags:
+            sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
+            memcache.set('tag' + key, sum_tags)
         n = len(topics)
-        return TopicForms(topics=topics, length=n)
+        return TopicForms(topics=topics, length=n, tags=sum_tags)
 
     @endpoints.method(
         ForumForm,

@@ -52,6 +52,11 @@ class Topic(ndb.Model):
     forums      = ndb.StringProperty(repeated=True)
 
 
+class Tag(ndb.Model):
+    tag         = ndb.StringProperty(required=True)
+    score       = ndb.IntegerProperty(default=0)
+
+
 class TopicForm(messages.Message):
     top_id      = messages.StringField(1)
     vote        = messages.IntegerField(2, variant=messages.Variant.INT32)
@@ -66,7 +71,8 @@ class TopicForm(messages.Message):
 
 class FreqTagForm(messages.Message):
     tag         = messages.StringField(1)
-    n           = messages.IntegerField(2, variant=messages.Variant.INT32)
+    score           = messages.IntegerField(2, variant=messages.Variant.INT32)
+
 
 class TopicForms(messages.Message):
     topics      = messages.MessageField(TopicForm, 1, repeated=True)
