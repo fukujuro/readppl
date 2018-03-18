@@ -53,6 +53,13 @@
         margin-bottom: 0px;
         padding: 5px 0px 0px 5px;
       }
+      .search.tags {
+        border: solid 1px #efefed;
+        padding: 1px 1px 0px 1px;
+      }
+      .search.tag {
+        margin-bottom: 1px;
+      }
       @media screen and (min-width: 1024px) {
         .column {
           border: solid 1px #efefed;
@@ -61,11 +68,6 @@
       }
       @media screen and (max-width: 735px) {
         .is-hidden-portrait {
-          display: none !important;
-        }
-      }
-      @media screen and (max-width: 1407px) {
-        .is-hidden-smallscreen {
           display: none !important;
         }
       }
@@ -100,12 +102,12 @@
       </div>
     </div>
   </nav>
-  <section class="container is-size-7-mobile">
+  <section class="container is-widescreen is-size-7-mobile">
     <nav class="breadcrumb is-hidden-touch">
     </nav>
     <div class="field has-addons" :class="isQuery">
-      <div class="tags">
-        <div class="tag is-info" v-for="b in breadcrumbs" v-on:click="removeTag($event)">
+      <div class="search tags">
+        <div class="search tag is-info" v-for="b in breadcrumbs" v-on:click="removeTag($event)">
           <span>{{ b }}</span>
           <span class="tag-score">x</span>
         </div>
@@ -138,7 +140,7 @@
             </footer>
         </article>
       </div>
-      <div id="toptag" class="column is-one-fifth-desktop is-one-quarter-widescreen is-hidden-touch">
+      <div id="toptag" class="column is-one-quarter-desktop is-one-quarter-widescreen is-hidden-touch">
             <div id="tags" class="tags score">
               <div class="tag is-info" v-for="tag in tags" v-on:click="selectTagScore($event)">
                 <span>{{ tag.tag }}</span>
@@ -157,7 +159,7 @@
     el: "#app",
     data: {
       apiUrl: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top?limit=99',
-      apiUrlForum: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top_forum?limit=20&title=',
+      apiUrlForum: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top_forum?limit=99&title=',
       apiUrlTag: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top_tag?limit=20&title=',
       topics: [],
       rooms: [
@@ -239,6 +241,7 @@
             this.showTop();
           }
           this.topics = [];
+          this.tags = [];
           axios.get(this.apiUrlForum + room)
           .then((resp) => {
             var topics = resp.data.topics;
@@ -287,6 +290,7 @@
             this.showTop();
           }
           this.topics = [];
+          this.tags = [];
           axios.get(this.apiUrlTag + query)
             .then((resp) => {
               // console.log(resp.data.topics);
