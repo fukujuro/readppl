@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css">
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
-    <title>Read+ เว็บค้นกระทู้ดีๆ ในพันทิป</title>
+    <title>Read+ อ่านกระทู้โหวตพันทิป</title>
     <style>
       .navbar-dropdown.is-boxed {
         border-radius: 0px;
@@ -35,6 +35,7 @@
       }
       .score {
         float: left;
+        padding: 5px 0px 0px 5px;
       }
       .tag-score {
         margin-left: 5px;
@@ -155,7 +156,7 @@
   var app = new Vue({
     el: "#app",
     data: {
-      apiUrl: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top?limit=20',
+      apiUrl: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top?limit=99',
       apiUrlForum: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top_forum?limit=20&title=',
       apiUrlTag: 'https://read-ppl.appspot.com/_ah/api/readppl/v1/readppl/get_top_tag?limit=20&title=',
       topics: [],
@@ -230,15 +231,9 @@
       getTopForum: function(e) {
         var room = e.target.innerText;
         if (this.current != room) {
-          var current = this.current;
-          this.rooms.splice(this.rooms.indexOf(room), 1);
           this.current = room;
-          if (current != 'เลือกห้อง') {
-            var all = this.all;
-            all.splice(all.indexOf(room), 1);
-            this.rooms = all;
-            // this.rooms.push(current);
-          }
+          this.rooms = this.all.slice(0);
+          this.rooms.splice(this.rooms.indexOf(room), 1);
           this.close();
           if (this.isTag) {
             this.showTop();
