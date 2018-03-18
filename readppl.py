@@ -149,6 +149,8 @@ class ReadpplApi(remote.Service):
             q = q.fetch(limit)
             topics = [self._copyTopicToForm(t) for t in q]
             memcache.set('top:all', topics)
+            sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
+            memcache.set('tag:top:all', sum_tags)
         sum_tags = memcache.get('tag:top:all')
         if not sum_tags:
             sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
