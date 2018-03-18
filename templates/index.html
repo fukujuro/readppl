@@ -1,77 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css">
-    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
-    <title>Read+ อ่านกระทู้โหวตพันทิป</title>
-    <style>
-      .navbar-dropdown.is-boxed {
-        border-radius: 0px;
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-115877564-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-115877564-1');
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css">
+  <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+  <title>Read+ อ่านกระทู้โหวตพันทิป</title>
+  <style>
+    .navbar-dropdown.is-boxed {
+      border-radius: 0px;
+    }
+    .post {
+      border-bottom: solid 1px #efefed;
+      padding: 5px;
+    }
+    .post header a {
+      color: #222;
+    }
+    .post footer a {
+      color: #a5a4a4;
+    }
+    [v-cloak] {
+      display: none;
+    }
+    .scores {
+      display: inline-block;
+    }
+    .tags {
+      float: right;
+    }
+    .tag {
+      border-radius: 0px !important;
+    }
+    .score {
+      float: left;
+      padding: 5px 0px 0px 5px;
+    }
+    .tag-score {
+      margin-left: 5px;
+    }
+    .room {
+      padding-right: 0.25em;
+    }
+    .tabs {
+      margin-bottom: 0px;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .field {
+      margin-bottom: 0px;
+      padding: 5px 0px 0px 5px;
+    }
+    .search.tags {
+      border: solid 1px #efefed;
+      padding: 1px 1px 0px 1px;
+    }
+    .search.tag {
+      margin-bottom: 1px;
+    }
+    @media screen and (min-width: 1024px) {
+      .column {
+        border: solid 1px #efefed;
+        height: 100%;
       }
-      .post {
-        border-bottom: solid 1px #efefed;
-        padding: 5px;
-      }
-      .post header a {
-        color: #222;
-      }
-      .post footer a {
-        color: #a5a4a4;
-      }
-      [v-cloak] {
-        display: none;
-      }
-      .scores {
-        display: inline-block;
-      }
-      .tags {
-        float: right;
-      }
-      .tag {
-        border-radius: 0px !important;
-      }
-      .score {
-        float: left;
-        padding: 5px 0px 0px 5px;
-      }
-      .tag-score {
-        margin-left: 5px;
-      }
-      .room {
-        padding-right: 0.25em;
-      }
-      .tabs {
-        margin-bottom: 0px;
-      }
-      .hidden {
+    }
+    @media screen and (max-width: 735px) {
+      .is-hidden-portrait {
         display: none !important;
       }
-      .field {
-        margin-bottom: 0px;
-        padding: 5px 0px 0px 5px;
-      }
-      .search.tags {
-        border: solid 1px #efefed;
-        padding: 1px 1px 0px 1px;
-      }
-      .search.tag {
-        margin-bottom: 1px;
-      }
-      @media screen and (min-width: 1024px) {
-        .column {
-          border: solid 1px #efefed;
-          height: 100%;
-        }
-      }
-      @media screen and (max-width: 735px) {
-        .is-hidden-portrait {
-          display: none !important;
-        }
-      }
-    </style>
+    }
+  </style>
 </head>
 <body>
 <main id="app" v-cloak>
