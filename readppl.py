@@ -151,10 +151,11 @@ class ReadpplApi(remote.Service):
             memcache.set('top:all', topics)
             sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
             memcache.set('tag:top:all', sum_tags)
-        sum_tags = memcache.get('tag:top:all')
-        if not sum_tags:
-            sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
-            memcache.set('tag:top:all', sum_tags)
+        else:
+            sum_tags = memcache.get('tag:top:all')
+            if not sum_tags:
+                sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
+                memcache.set('tag:top:all', sum_tags)
         # freq_tags = memcache.get('tag:top:all')
         # if not freq_tags:
         #     tags = []
@@ -190,15 +191,18 @@ class ReadpplApi(remote.Service):
                 limit = request.limit
             q = q.fetch(limit)
             topics = [self._copyTopicToForm(t) for t in q]
-            if len(tags) == 1 and key:
-                memcache.set(key, topics)
-        sum_tags = None
-        if len(tags) == 1 and key:
-            sum_tags = memcache.get('tag' + key)
-        if not sum_tags:
             sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
             if len(tags) == 1 and key:
+                memcache.set(key, topics)
                 memcache.set('tag' + key, sum_tags)
+        else:
+            sum_tags = None
+            if len(tags) == 1 and key:
+                sum_tags = memcache.get('tag' + key)
+            if not sum_tags:
+                sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
+                if len(tags) == 1 and key:
+                    memcache.set('tag' + key, sum_tags)
         n = len(topics)
         return TopicForms(topics=topics, length=n, tags=sum_tags)
 
@@ -226,10 +230,13 @@ class ReadpplApi(remote.Service):
             q = q.fetch(limit)
             topics = [self._copyTopicToForm(t) for t in q]
             memcache.set(key, topics)
-        sum_tags = memcache.get('tag' + key)
-        if not sum_tags:
             sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
             memcache.set('tag' + key, sum_tags)
+        else:
+            sum_tags = memcache.get('tag' + key)
+            if not sum_tags:
+                sum_tags = [self._copyTagToForm(Tag(tag=t[0], score=t[1])) for t in self._sumTag(topics)]
+                memcache.set('tag' + key, sum_tags)
         n = len(topics)
         return TopicForms(topics=topics, length=n, tags=sum_tags)
 
@@ -238,7 +245,8 @@ class ReadpplApi(remote.Service):
         ForumForm,
         path='readppl/update_forum',
         http_method='POST',
-        name='updateForum')
+        name='updateForum',
+        api_key_required=True)
     def updateForum(self, request):
         forum_key = ndb.Key(Forum, request.forum)
         task_key = ndb.Key(ForumInitTask, request.forum, parent=forum_key)
