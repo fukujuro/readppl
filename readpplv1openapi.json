@@ -4,6 +4,18 @@
     "application/json"
   ],
   "definitions": {
+    "ModelsFreqTagForm": {
+      "properties": {
+        "score": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "ModelsTopicForm": {
       "properties": {
         "author": {
@@ -50,6 +62,12 @@
         "length": {
           "format": "int32",
           "type": "integer"
+        },
+        "tags": {
+          "items": {
+            "$ref": "#/definitions/ModelsFreqTagForm"
+          },
+          "type": "array"
         },
         "topics": {
           "items": {
@@ -102,7 +120,20 @@
     "/readppl/v1/readppl/get_top": {
       "get": {
         "operationId": "ReadpplApi_getTop",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "default": 10,
+            "format": "int32",
+            "in": "query",
+            "name": "limit",
+            "type": "integer"
+          }
+        ],
         "responses": {
           "200": {
             "description": "A successful response",
@@ -123,17 +154,11 @@
             "type": "string"
           },
           {
-            "default": 1,
+            "default": 10,
             "format": "int32",
             "in": "query",
-            "name": "loops",
+            "name": "limit",
             "type": "integer"
-          },
-          {
-            "default": "0",
-            "in": "query",
-            "name": "last_id",
-            "type": "string"
           }
         ],
         "responses": {
@@ -156,17 +181,11 @@
             "type": "string"
           },
           {
-            "default": 1,
+            "default": 10,
             "format": "int32",
             "in": "query",
-            "name": "loops",
+            "name": "limit",
             "type": "integer"
-          },
-          {
-            "default": "0",
-            "in": "query",
-            "name": "last_id",
-            "type": "string"
           }
         ],
         "responses": {
@@ -198,7 +217,12 @@
               "$ref": "#/definitions/ModelsTopicForms"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
       }
     },
     "/readppl/v1/readppl/update_forum": {
@@ -220,7 +244,12 @@
               "$ref": "#/definitions/ReadpplForumForm"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
       }
     }
   },
@@ -231,6 +260,11 @@
     "https"
   ],
   "securityDefinitions": {
+    "api_key": {
+      "in": "query",
+      "name": "key",
+      "type": "apiKey"
+    },
     "google_id_token": {
       "authorizationUrl": "",
       "flow": "implicit",
