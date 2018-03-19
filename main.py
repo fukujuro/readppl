@@ -17,7 +17,7 @@ class CollectTopicsForumHandler(webapp2.RequestHandler):
     def post(self):
         forum = self.request.get('title')
         loops = int(self.request.get('loops'))
-        limit = 10
+        limit = int(self.request.get('limit'))
         if loops < limit:
             limit = loops
         forum_key = ndb.Key(Forum, forum)
@@ -47,7 +47,8 @@ class CollectTopicsForumHandler(webapp2.RequestHandler):
                 task.put()
                 if loops - limit > 0:
                     taskqueue.add(params={'title': forum,
-                                          'loops': loops - limit},
+                                          'loops': loops - limit,
+                                          'limit': limit},
                                   url='/collect_topics/forum')
 
 

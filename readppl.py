@@ -30,6 +30,9 @@ class TaskForm(messages.Message):
                                   variant=messages.Variant.INT32,
                                   default=1)
     last_id = messages.StringField(3, default='0')
+    limit = messages.IntegerField(4,
+                                   variant=messages.Variant.INT32,
+                                   default=20)
 
 
 class ForumForm(messages.Message):
@@ -43,7 +46,7 @@ class GetTopForm(messages.Message):
     title = messages.StringField(1)
     limit = messages.IntegerField(2,
                                    variant=messages.Variant.INT32,
-                                   default=10)
+                                   default=50)
 
 
 @endpoints.api(name='readppl', version='v1')
@@ -116,11 +119,13 @@ class ReadpplApi(remote.Service):
             put = self._initForum(request.title, count, last_id)
             if put:
                 taskqueue.add(params={'title': request.title,
-                                      'loops': request.loops},
+                                      'loops': request.loops,
+                                      'limit': request.limit},
                               url='/collect_topics/forum')
         elif not task.done:
             taskqueue.add(params={'title': request.title,
-                                  'loops': request.loops},
+                                  'loops': request.loops,
+                                  'limit': request.limit},
                           url='/collect_topics/forum')
         q = Topic.query()
         q = q.filter(Topic.forums==request.title)
